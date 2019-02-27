@@ -21,6 +21,9 @@ module ManageIQ
         # version of Rails.
         self.formatter = Formatter.new
 
+        @sync = false if @sync.nil?
+        @logdev.dev.sync = sync
+
         # Allow for thread safe Logger level changes, similar to functionalities
         # provided by ActiveSupport::LoggerThreadSafeLevel
         @write_lock   = Mutex.new
@@ -40,6 +43,12 @@ module ManageIQ
       end
 
       attr_reader :logdev # Expose logdev
+      attr_reader :sync   # Control IO device buffering
+
+      def sync=(sync)
+        @sync = sync
+        @logdev.dev.sync = sync if @logdev
+      end
 
       def logdev=(logdev)
         if @logdev
@@ -52,6 +61,9 @@ module ManageIQ
         end
 
         @logdev = LogDevice.new(logdev, :shift_age => shift_age, :shift_size => shift_size)
+        @logdev.dev.sync = sync
+
+        @logdev
       end
 
       def log_backtrace(err, level = :error)
